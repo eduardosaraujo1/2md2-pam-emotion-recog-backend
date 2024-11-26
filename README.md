@@ -9,18 +9,23 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 ```
 [tb_historico]
 ID INT primary key auto_increment
-user_id CHAR(32) not null -- MD5(UUID())
 timestamp DATETIME not null
 fk_emocao INT not null
+fk_user_id CHAR(32) not null -- MD5(UUID())
 foreign key (fk_emocao) references tb_emocao (id)
+foreign key (fk_user_id) references tb_usuario (user_id)
 
 [tb_emocao]
 id int primary key auto_increment
 nome VARCHAR(45)
 hex_color char(6)
+
+[tb_usuario]
+user_id CHAR(32) PRIMARY KEY -- MD5(UUID)
+timestamp_cadastro DATETIME NOT NULL
 ```
 
-### Laravel
+### Express endpoint
 
 ```
 [GET /new_user]
