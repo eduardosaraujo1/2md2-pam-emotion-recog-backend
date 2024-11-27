@@ -1,10 +1,14 @@
 import express, { json } from 'express';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import axios from 'axios';
 
 import crypto, { randomUUID } from 'crypto';
 import { database } from './modules/database.js';
 import { logging } from './modules/logging.js';
+
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const server = createServer(app);
@@ -54,6 +58,17 @@ function parseWSMessage(message) {
     return response;
 }
 
+async function consumeEmotionAPI(url, image) {
+    try {
+        const response = await axios.post(url, {
+            image,
+        });
+        return response.data;
+    } catch (e) {
+        logging.logError(e.message);
+    }
+}
+
 wss.on('connection', (socket, request) => {
     // Error handling
     socket.on('error', logging.logError);
@@ -66,7 +81,7 @@ wss.on('connection', (socket, request) => {
         socket.close();
     }
 
-    socket.on('message', (data) => {
+    socket.on('message', async (data) => {
         // Validate the message, ignore if invalid
         const obj = parseWSMessage(data.toString());
         console.log(obj);
@@ -78,6 +93,14 @@ wss.on('connection', (socket, request) => {
         if (obj['register']) {
             console.log('Assigning new emotion: ' + obj['register']);
             database.registerEmotion(token, obj['register']);
+        }
+
+        // {"image": 'data:image/jpeg;base64,}
+        if (obj['image']) {
+            const image = obj['image'];
+            const response = await consumeEmotionAPI(process.env.EMOTION_API_URL, image);
+            console.log(response);
+            socket.send(JSON.stringify(response));
         }
     });
 });
