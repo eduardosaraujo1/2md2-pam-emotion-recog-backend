@@ -7,44 +7,41 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 ### Banco de Dados
 
 ```
-[tb_historico]
-ID INT primary key auto_increment
-timestamp DATETIME not null
-fk_emocao INT not null
-fk_user_id CHAR(32) not null -- MD5(UUID())
-foreign key (fk_emocao) references tb_emocao (id)
-foreign key (fk_user_id) references tb_usuario (user_id)
-
 [tb_emocao]
-id int primary key auto_increment
-nome VARCHAR(45)
-hex_color char(6)
+    id INT PRIMARY KEY auto_increment,
+    nome VARCHAR(45),
+    hex_color CHAR(6)
 
-[tb_usuario]
-user_id CHAR(32) PRIMARY KEY -- MD5(UUID)
-timestamp_cadastro DATETIME NOT NULL
+[tb_historico]
+    id INT PRIMARY KEY auto_increment,
+    user_token CHAR(64) NOT NULL, -- SHA256(UUID())
+    fk_emocao INT NOT NULL,
+    dt_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fk_emocao) REFERENCES tb_emocao (id),
 ```
 
 ### Express endpoint
 
 ```
-[GET /new_user]
+[GET /new-token]
 -> Request:
+{}
 -> Response:
 {
-    "user_id": "d43626734ab5e9abca9c225a5e498313"
+    "token": "15c66754d1384844126400ca6256c1ed34cbcb43cdabd575764a7dffa0b0200f"
 }
 
 [GET /history]
 -> Request:
 {
-    "user_id": "d43626734ab5e9abca9c225a5e498313"
+    "token": "15c66754d1384844126400ca6256c1ed34cbcb43cdabd575764a7dffa0b0200f"
 }
 -> Response:
 [
     {
         "timestamp": "yyyy-mm-dd HH:mm:ss",
         "emotion": {
+            "id": 1
             "name": "sad",
             "color": "blue"
         }
@@ -52,25 +49,22 @@ timestamp_cadastro DATETIME NOT NULL
     {
         "timestamp": "yy-mm-dd HH:mm:ss",
         "emotion": {
+            "id": 2
             "name": "happy",
             "color": "yellow"
         }
     }
 ]
-
-[POST /history]
--> Request:
+-> Error 'invalid token':
 {
-    "user_id": "d43626734ab5e9abca9c225a5e498313",
-    "emotion": "sad"
+    "error": "INVALID_CREDENTIALS"
 }
 
-(WebSocket)
-[GET /frame-emotion]
+// Query param ?token=15c66754d1384844126400ca6256c1ed34cbcb43cdabd575764a7dffa0b0200f
+[WebSocket /frame-emotion]
 -> Request:
 {
     "image": "base64",
-    "user_id": "char(32)"
 }
 -> Response:
 {
@@ -86,15 +80,20 @@ timestamp_cadastro DATETIME NOT NULL
         "neutral": 0
     }
 }
+-> Request:
+{
+    "register_emotion": 1,
+}
+-> Response: none // register on history table silently using ?token as a way to find the user
 
 [EMOTIONS]
-sad,
-happy,
-angry,
-surprise,
-fear,
-disgust,
-neutral
+1 - Sad,
+2 - Happy,
+3 - Angry,
+4 - Surprise,
+5 - Fear,
+6 - Disgust,
+7 - Neutral
 ```
 
 # Roadmap
