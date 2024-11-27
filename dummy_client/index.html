@@ -8,7 +8,7 @@
     <body>
         <label for="img">Upload Image:</label>
         <input type="file" id="img" name="img" accept="image/*" />
-        <button onclick="startCam()">Send hook</button>
+        <button onclick="run()">Send hook</button>
         <br /><br />
         <div class="container">
             <div class="output" style="max-width: 75%">
@@ -105,8 +105,6 @@
                 },
             });
 
-            function startCam() {}
-
             async function run() {
                 const img = await getImageBase64();
                 document.querySelector('img').src = img;
@@ -114,7 +112,7 @@
                 socket.sendMessage(`{"image": "${img}"}`);
             }
 
-            setInterval(run, 500);
+            // setInterval(run, 500);
         </script>
     </body>
 </html>

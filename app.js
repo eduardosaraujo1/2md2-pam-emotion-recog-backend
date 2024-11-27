@@ -7,8 +7,7 @@ import crypto, { randomUUID } from 'crypto';
 import { database } from './modules/database.js';
 import { logging } from './modules/logging.js';
 
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
 const app = express();
 const server = createServer(app);
@@ -75,6 +74,7 @@ wss.on('connection', (socket, request) => {
     }
 
     socket.on('message', async (data) => {
+        console.log('[Received message from client]');
         // Validate the message, ignore if invalid
         const obj = parseWSMessage(data.toString());
 
@@ -91,6 +91,7 @@ wss.on('connection', (socket, request) => {
 
         // {"image": 'data:image/jpeg;base64,}
         if (obj['image']) {
+            console.log('Responding to new image');
             const image = obj['image'];
             const response = await consumeEmotionAPI(process.env.EMOTION_API_URL, image);
 

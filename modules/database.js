@@ -1,15 +1,16 @@
 import mysql from 'mysql2';
 import { logging } from './logging.js';
 
-import dotenv from 'dotenv';
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+    import('dotenv/config');
+}
 
 const pool = mysql
     .createPool({
         host: process.env.MYSQL_HOST,
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASSWORD,
-        port: process.env.MYSQL_PORT || '',
+        port: process.env.MYSQL_PORT || '3306',
         database: process.env.MYSQL_DATABASE,
     })
     .promise();

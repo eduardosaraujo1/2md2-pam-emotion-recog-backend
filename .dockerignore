@@ -1,0 +1,4 @@
+node_modules
+dummy_client
+deploy
+.env

@@ -105,4 +105,5 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 -   [x] Conectar projeto Express.js ao MySQL
 -   [x] Criar rotas REST
 -   [x] Criar WebSocket
+-   [ ] Emocao should be a .json file not a mysql table
 -   [ ] Containerizar app em Docker e enviar para Railway
