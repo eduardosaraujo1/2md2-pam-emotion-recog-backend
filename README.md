@@ -68,7 +68,11 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 }
 -> Response:
 {
-    "emotion": "sad",
+    "emotion": {
+        "id": 2,
+        "name": "sad",
+        "color": "blue"
+    }
     "confidence": 0.9,
     "scores": {
         "sad": 0.9,
@@ -101,5 +105,4 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 -   [x] Conectar projeto Express.js ao MySQL
 -   [x] Criar rotas REST
 -   [x] Criar WebSocket
--   [ ] Fazer testes com a API para lidar com a demora da API e resolver (guardar ultima request em um vetor e processar apenas essa assim que possível). mas como que funciona essa fila? Quando três requests forem mandadas enquanto a primeira ainda não respondeu são 3 chamadas simultâneas e a API Flask tem q lidar com 3 requests? Ou as duas não são enviadas até a primeira terminar?
 -   [ ] Containerizar app em Docker e enviar para Railway

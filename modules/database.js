@@ -15,7 +15,8 @@ const pool = mysql
     .promise();
 
 async function getHistoryByToken(token) {
-    const query = `
+    try {
+        const query = `
     SELECT e.id as 'id', e.nome 'name', e.hex_color 'color', h.dt_cadastro as 'datetime'
     FROM tb_historico as h
     JOIN tb_emocao as e 
@@ -23,8 +24,25 @@ async function getHistoryByToken(token) {
     WHERE h.user_token = ?
     ORDER BY h.dt_cadastro DESC
     `;
-    const [result] = await pool.query(query, [token]);
-    return result;
+        const [result] = await pool.query(query, [token]);
+        return result;
+    } catch (e) {
+        logging.logError(e.message);
+    }
+}
+
+async function getEmotionByName(name) {
+    try {
+        const query = `
+    SELECT id, nome 'name', hex_color 'color'
+    FROM tb_emocao
+    WHERE nome = ?
+    `;
+        const [result] = await pool.query(query, [name]);
+        return result;
+    } catch (e) {
+        logging.logError(e.message);
+    }
 }
 
 async function registerEmotion(token, emotion) {
@@ -42,5 +60,6 @@ async function registerEmotion(token, emotion) {
 
 export const database = {
     getHistoryByToken,
+    getEmotionByName,
     registerEmotion,
 };

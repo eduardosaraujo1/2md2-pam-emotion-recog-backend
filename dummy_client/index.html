@@ -8,51 +8,113 @@
     <body>
         <label for="img">Upload Image:</label>
         <input type="file" id="img" name="img" accept="image/*" />
-        <button onclick="sendImage()">Send hook</button>
+        <button onclick="startCam()">Send hook</button>
+        <br /><br />
+        <div class="container">
+            <div class="output" style="max-width: 75%">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet facilis tempore iste iure ab ducimus harum neque laudantium,
+                odit ad nihil necessitatibus dolore ea iusto debitis vitae nam, error totam.
+            </div>
+            <img src="" alt="" />
+        </div>
         <script>
-            function jsonTryParse(str) {
-                let json;
-                try {
-                    json = JSON.parse(str);
-                } catch {
-                    json = str;
-                }
-                return str;
-            }
-
-            function getImageBase64(file) {
+            function getImageBase64() {
                 return new Promise((resolve, reject) => {
+                    const file = imgInput.files[0];
+                    if (!file) {
+                        reject('FileNotFound');
+                    }
+
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         resolve(e.target.result);
                     };
                     reader.onerror = (e) => {
-                        reject('error');
+                        reject('FileReader error');
                     };
                     reader.readAsDataURL(file);
                 });
             }
 
-            async function sendImage() {
-                const file = imgInput.files[0];
-                if (!file) return;
-                const image = await getImageBase64(file);
+            const imgInput = document.querySelector('#img');
+            function createSocket({ url, onopen, onmessage, onclose, onerror }) {
+                const ws = new WebSocket(url);
 
-                console.log(image);
-                ws.send(JSON.stringify({ image: image }));
+                function eventError(error) {
+                    if (typeof onerror === 'function') {
+                        onerror(error);
+                    } else {
+                        console.error(error);
+                    }
+                }
+
+                function eventMessage(event) {
+                    if (typeof onmessage === 'function') {
+                        onmessage(event);
+                    } else {
+                        console.log(event.data.toString());
+                    }
+                }
+
+                function eventOpen(event) {
+                    if (typeof onopen === 'function') {
+                        onopen(event);
+                    } else {
+                        console.log('Connection successful');
+                    }
+                }
+
+                function eventClose(event) {
+                    if (typeof onclose === 'function') {
+                        onclose(event);
+                    }
+                }
+
+                ws.addEventListener('error', eventError);
+                ws.addEventListener('open', eventOpen);
+                ws.addEventListener('message', eventMessage);
+                ws.addEventListener('close', eventClose);
+
+                function sendMessage(msg) {
+                    ws.send(msg);
+                }
+
+                return {
+                    websocket: ws,
+                    sendMessage,
+                };
             }
 
-            const imgInput = document.querySelector('#img');
-            const ws = new WebSocket(`ws://localhost:3000?token=${crypto.randomUUID()}`);
-            ws.addEventListener('open', () => {
-                console.log('Sending object');
-                const random = () => Math.floor(1 + Math.random() * 7);
-                ws.send(`{"register": ${random()}}`);
+            const url = `ws://localhost:3000?token=${crypto.randomUUID()}`;
+            const socket = createSocket({
+                url: url,
+                onopen: () => {
+                    console.log(`Successfully connected to server ${url}`);
+                },
+                onmessage: (event) => {
+                    console.log(`Message received: ${event.data.toString()}`);
+                    console.log('Parsing response as JSON...');
+                    try {
+                        const json = JSON.parse(event.data.toString());
+                        console.log(json);
+                        document.querySelector('.output').innerHTML = JSON.stringify(json, null, 4);
+                    } catch (e) {
+                        console.error(e);
+                        document.querySelector('.output').innerHTML = event.data.toString();
+                    }
+                },
             });
 
-            ws.addEventListener('message', (event) => {
-                console.log(jsonTryParse(event.data.toString()));
-            });
+            function startCam() {}
+
+            async function run() {
+                const img = await getImageBase64();
+                document.querySelector('img').src = img;
+
+                socket.sendMessage(`{"image": "${img}"}`);
+            }
+
+            setInterval(run, 500);
         </script>
     </body>
 </html>
