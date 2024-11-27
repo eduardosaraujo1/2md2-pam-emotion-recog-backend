@@ -13,9 +13,9 @@ CREATE TABLE tb_emocao (
 CREATE TABLE tb_historico (
     id INT PRIMARY KEY auto_increment,
     user_token VARCHAR(36) NOT NULL, -- UUID()
-    fk_emocao INT NOT NULL,
     dt_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (fk_emocao) REFERENCES tb_emocao (id),
+    fk_id_emocao INT NOT NULL,
+    FOREIGN KEY (fk_id_emocao) REFERENCES tb_emocao (id)
 );
 
 -- Dados para emoções
