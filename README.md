@@ -61,7 +61,7 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 }
 
 // Query param ?token=15c66754d1384844126400ca6256c1ed34cbcb43cdabd575764a7dffa0b0200f
-[WebSocket /frame-emotion]
+[WebSocket /]
 -> Request:
 {
     "image": "base64",
@@ -82,7 +82,7 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 }
 -> Request:
 {
-    "register_emotion": 1,
+    "register": 1,
 }
 -> Response: none // register on history table silently using ?token as a way to find the user
 

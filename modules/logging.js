@@ -1,5 +1,5 @@
-function logError(e) {
-    console.log(`[ERROR] ${e.message}`);
+function logError(message) {
+    console.log(`[ERROR] ${message}`);
 }
 
 export const logging = { logError };
