@@ -13,6 +13,7 @@
         "axios": "^1.7.8",
         "express": "^4.21.1",
         "mysql2": "^3.11.4",
+        "sharp": "^0.33.5",
         "ws": "^8.18.0"
     },
     "devDependencies": {
