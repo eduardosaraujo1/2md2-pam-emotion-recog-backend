@@ -20,9 +20,7 @@ async function getHistoryByToken(token) {
     try {
         const query = `
     SELECT e.id as 'id', e.nome 'name', e.hex_color 'color', h.dt_cadastro as 'datetime'
-    FROM tb_historico as h
-    JOIN tb_emocao as e 
-    ON e.id = h.fk_id_emocao
+    FROM historico as h
     WHERE h.user_token = ?
     ORDER BY h.dt_cadastro DESC
     `;
@@ -33,24 +31,10 @@ async function getHistoryByToken(token) {
     }
 }
 
-async function getEmotionByName(name) {
-    try {
-        const query = `
-    SELECT id, nome 'name', hex_color 'color'
-    FROM tb_emocao
-    WHERE nome = ?
-    `;
-        const [result] = await pool.query(query, [name]);
-        return result;
-    } catch (e) {
-        logging.logError(e.message);
-    }
-}
-
 async function registerEmotionById(token, emotion) {
     try {
         const query = `
-        INSERT INTO tb_historico (user_token, fk_id_emocao) VALUES
+        INSERT INTO historico (user_uuid, id_emocao) VALUES
         (?, ?)
         `;
         const [result] = await pool.query(query, [token, emotion]);
@@ -62,7 +46,6 @@ async function registerEmotionById(token, emotion) {
 
 const database = {
     getHistoryByToken,
-    getEmotionByName,
     registerEmotionById,
 };
 

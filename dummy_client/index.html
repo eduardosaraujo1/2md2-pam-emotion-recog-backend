@@ -18,6 +18,7 @@
             <img src="" alt="" />
         </div>
         <script>
+            let DO_LOOP = false;
             function getImageBase64() {
                 return new Promise((resolve, reject) => {
                     const file = imgInput.files[0];
@@ -115,7 +116,7 @@
                 socket.sendMessage(`{"image": "${img}"}`);
             }
 
-            setInterval(run, 500);
+            // setInterval(run, 500);
         </script>
     </body>
 </html>

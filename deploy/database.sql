@@ -9,4 +9,4 @@ CREATE TABLE historico (
     user_uuid VARCHAR(36) NOT NULL,
     id_emocao INT NOT NULL,
     dt_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
-)
+);

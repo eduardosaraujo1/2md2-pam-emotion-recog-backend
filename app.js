@@ -20,7 +20,6 @@ const port = 3000;
 
 // utils
 function isNumeric(str) {
-    if (typeof str != 'string') return false; // we only process strings!
     return (
         !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
         !isNaN(parseFloat(str))
@@ -99,30 +98,37 @@ const wss = createSocketServer({
             return req;
         }
 
-        function registerEmotion(emotionId) {
+        function registerEmotion(emotionId, token) {
             // Validate emotion ID
             if (!isNumeric(emotionId) || !queryEmotions.findById(+emotionId)) {
+                console.log(emotionId);
+                console.log(isNumeric(emotionId));
+                console.log(queryEmotions.findById(+emotionId));
                 logging.log(`Client did not specify a valid emotion. Failing silently`);
                 return;
             }
 
             // Register to database
-            database.registerEmotionById(+emotionId);
+            database.registerEmotionById(token, +emotionId);
+        }
+
+        function getStateValues() {
+            const { auth: token, analyzer: emotionAnalyzer } = connection.state;
+            if (!token) {
+                logging.logError('No token was found: closing connection');
+                connection.socket.send("Please specify the 'token' query string param before connecting");
+                connection.socket.close();
+            }
+
+            if (!emotionAnalyzer) {
+                throw new Error('WebSocket onMessage: Missing emotion analyzer');
+            }
+            return { token, emotionAnalyzer };
         }
 
         logging.log('Received message from client, processing');
 
-        // Get state values
-        const { auth: token, analyzer: emotionAnalyzer } = connection.state;
-        if (!token) {
-            logging.logError('No token was found: closing connection');
-            connection.socket.send("Please specify the 'token' query string param before connecting");
-            connection.socket.close();
-        }
-
-        if (!emotionAnalyzer) {
-            throw new Error('WebSocket onMessage: Missing emotion analyzer');
-        }
+        const { token, emotionAnalyzer } = getStateValues();
 
         // Get request data
         const req = extractRequest(data.toString());
@@ -130,13 +136,13 @@ const wss = createSocketServer({
         // Validate request
         if (req.error) {
             logging.logError(req.error);
-            return; // For now, ignore silently
+            return;
         }
 
         // Register emotion to history
         if (req.register) {
             logging.log(`Client requested to register emotion ${req.register}`);
-            registerEmotion(req.register);
+            registerEmotion(req.register, token);
         }
 
         // Process image
