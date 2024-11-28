@@ -54,10 +54,18 @@ export function createEmotionAnalyzer(callback) {
 
     // make api request
     async function processImage(img) {
+        const RESPONSE_DELAY = process.env.EMOTION_API_RESPONSE_DELAY || 2000;
         try {
-            const response = await axios.post(API_URL, {
-                image: img,
+            // Adicionando delay ao tempo de resposta para poupar a API
+            const response = await new Promise((resolve) => {
+                setTimeout(async () => {
+                    const res = await axios.post(API_URL, {
+                        image: img,
+                    });
+                    resolve(res);
+                }, RESPONSE_DELAY);
             });
+
             const data = response.data;
             const ret = {
                 image: img,
