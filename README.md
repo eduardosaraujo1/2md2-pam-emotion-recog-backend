@@ -7,17 +7,11 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 ### Banco de Dados
 
 ```
-[tb_emocao]
-    id INT PRIMARY KEY auto_increment,
-    nome VARCHAR(45),
-    hex_color CHAR(6)
-
 [tb_historico]
-    id INT PRIMARY KEY auto_increment,
-    user_token CHAR(64) NOT NULL, -- SHA256(UUID())
-    fk_emocao INT NOT NULL,
-    dt_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (fk_emocao) REFERENCES tb_emocao (id),
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_uuid VARCHAR(36) NOT NULL,
+    id_emocao INT NOT NULL,
+    dt_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
 ```
 
 ### Express endpoint
