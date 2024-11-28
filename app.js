@@ -1,151 +1,168 @@
 import express, { json } from 'express';
-import { createServer } from 'http';
-import { WebSocketServer } from 'ws';
-import axios from 'axios';
+import http from 'http';
 
-import crypto, { randomUUID } from 'crypto';
-import { database } from './modules/database.js';
-import { logging } from './modules/logging.js';
+import database from './modules/database.js';
+import queryEmotions from './modules/queryEmotions.js';
+import logging from './modules/logging.js';
+import { setupRoutes } from './modules/routes.js';
+import { createSocketServer } from './modules/socket.js';
+import { createEmotionAnalyzer, formatAnalysis } from './modules/emotionAnalyzer.js';
 
-import 'dotenv/config';
+// Use dotenv on production
+if (process.env.NODE_ENV !== 'production') {
+    const dotenv = await import('dotenv');
+    dotenv.config();
+}
 
 const app = express();
-const server = createServer(app);
-const wss = new WebSocketServer({ server });
+const server = http.createServer(app);
 const port = 3000;
 
-// WebSocket for real time emotion detection and history
-function validateToken(token) {
-    return token != null && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token);
+// utils
+function isNumeric(str) {
+    if (typeof str != 'string') return false; // we only process strings!
+    return (
+        !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+        !isNaN(parseFloat(str))
+    ); // ...and ensure strings of whitespace fail
 }
 
-function parseQueryString(str) {
-    const url = new URL(str, 'http://localhost');
-    return Object.fromEntries(url.searchParams);
-}
-
-function parseWSMessage(message) {
-    let response;
-    try {
-        response = JSON.parse(message);
-    } catch {
-        response = null;
-    }
-    return response;
-}
-
-async function consumeEmotionAPI(url, image) {
-    try {
-        const response = await axios.post(url, {
-            image,
-        });
-        return response.data;
-    } catch (e) {
-        logging.logError(e.message);
-    }
-}
-
-async function addEmotionDataToObject(obj) {
-    if (typeof obj !== 'object') return obj;
-    if (!obj['emotion']) return obj;
-
-    // Get emotion data from the database
-    const emotionData = await database.getEmotionByName(obj.emotion);
-
-    // If the response is not an array for any reason, ignore this entry
-    if (!Array.isArray(emotionData)) return obj;
-
-    // Add complete object into merge
-    obj.emotion = emotionData[0];
-
-    return obj;
-}
-
-wss.on('connection', (socket, request) => {
-    // Error handling
-    socket.on('error', logging.logError);
-
-    // Validation
-    const token = parseQueryString(request.url)['token'];
-
-    if (!validateToken(token)) {
-        socket.send(JSON.stringify({ error: "Missing 'token' for user validation" }));
-        socket.close();
-    }
-
-    socket.on('message', async (data) => {
-        console.log('[Received message from client]');
-        // Validate the message, ignore if invalid
-        const obj = parseWSMessage(data.toString());
-
-        // console.log(obj);
-        if (!obj) {
-            return;
+const wss = createSocketServer({
+    server: server,
+    /**
+     *
+     * @param {object} connection
+     * @param {WebSocket} connection.socket
+     * @param {object} connection.state
+     * @param {IncomingMessage} request
+     */
+    onConnection: (connection, request) => {
+        function validateUUID(uuid) {
+            return uuid != null && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
         }
 
-        // {"register_emotion": n}
-        if (obj['register']) {
-            console.log('Assigning new emotion: ' + obj['register']);
-            database.registerEmotion(token, obj['register']);
+        function parseQueryString(str) {
+            const url = new URL(str, 'http://localhost');
+            return Object.fromEntries(url.searchParams);
         }
 
-        // {"image": 'data:image/jpeg;base64,}
-        if (obj['image']) {
-            console.log('Responding to new image');
-            const image = obj['image'];
-            const response = await consumeEmotionAPI(process.env.EMOTION_API_URL, image);
+        function formatAnalysisAndReturn(analysis) {
+            const formattedAnalysis = formatAnalysis(analysis);
 
-            // Se response.error estiver definido, não foi bem sucedido
-            if (!response) {
-                logging.logError('Image processor returned null');
-                // socket.send(JSON.stringify({ error: 'Internal processor error (null)' }));
-                return;
+            // send analysis to client
+            connection.socket.send(JSON.stringify(formattedAnalysis));
+
+            // logging: print only part of the 'image'
+            if (typeof formattedAnalysis.image === 'string') {
+                formattedAnalysis.image = formattedAnalysis.image.slice(0, 150) + '...';
             }
-            if (response?.['error']) {
-                logging.logError(response['error']);
-                // socket.send(JSON.stringify({ error: 'Internal processor error (logged)' }));
-                return;
+            logging.log(`{ image: '${formattedAnalysis.image}' }`);
+            logging.log(formattedAnalysis.emotions);
+        }
+
+        // get user authentication
+        const uuid = parseQueryString(request.url)?.['token'];
+
+        if (!uuid || !validateUUID(uuid)) {
+            connection.socket.send(
+                JSON.stringify({
+                    error: 'NO_TOKEN_FOUND',
+                })
+            );
+            connection.socket.close();
+        }
+
+        // create emotion analyzer
+        const analyzer = createEmotionAnalyzer(formatAnalysisAndReturn);
+
+        // Save uuid and analyzer to connection state
+        connection.state.auth = uuid;
+        connection.state.analyzer = analyzer;
+    },
+    /**
+     *
+     * @param {object} connection
+     * @param {WebSocket} connection.socket
+     * @param {object} connection.state
+     * @param {string} data
+     */
+    onMessage: (connection, data) => {
+        function extractRequest(str) {
+            let req;
+            try {
+                req = JSON.parse(str);
+            } catch {
+                req = {
+                    error: 'INVALID_REQUEST_FORMAT',
+                };
             }
-            if (!Array.isArray(response)) {
-                logging.logError('Response is not an array of emotions');
+            return req;
+        }
+
+        function registerEmotion(emotionId) {
+            // Validate emotion ID
+            if (!isNumeric(emotionId) || !queryEmotions.findById(+emotionId)) {
+                logging.log(`Client did not specify a valid emotion. Failing silently`);
                 return;
             }
 
-            // Add emotion data from database to the response object
-            const merge = [];
-            for (const res of response) {
-                const obj = await addEmotionDataToObject(res);
-                merge.push(obj);
+            // Register to database
+            database.registerEmotionById(+emotionId);
+        }
+
+        logging.log('Received message from client, processing');
+
+        // Get state values
+        const { auth: token, analyzer: emotionAnalyzer } = connection.state;
+        if (!token) {
+            logging.logError('No token was found: closing connection');
+            connection.socket.send("Please specify the 'token' query string param before connecting");
+            connection.socket.close();
+        }
+
+        if (!emotionAnalyzer) {
+            throw new Error('WebSocket onMessage: Missing emotion analyzer');
+        }
+
+        // Get request data
+        const req = extractRequest(data.toString());
+
+        // Validate request
+        if (req.error) {
+            logging.logError(req.error);
+            return; // For now, ignore silently
+        }
+
+        // Register emotion to history
+        if (req.register) {
+            logging.log(`Client requested to register emotion ${req.register}`);
+            registerEmotion(req.register);
+        }
+
+        // Process image
+        if (req.image) {
+            logging.log(`Client requested frame analysis`);
+
+            // check if requester sent base64 valid image
+            const img = req.image;
+            if (typeof img !== 'string') {
+                logging.logError(`ImageAnalyzer: Image is invalid: ${typeof req.image}`);
+                return; // fail silently
             }
 
-            console.log(merge);
-            socket.send(JSON.stringify(merge));
+            logging.log('Image: ' + img.slice(0, 300) + '...');
+
+            // Add image to analyzer queue
+            emotionAnalyzer.analyze(req.image);
         }
-    });
+    },
 });
 
 // Read JSON from requests more easily
 app.use(json());
 
-app.get('/new-token', (req, res) => {
-    res.send({ token: randomUUID() });
-});
-
-app.get('/history', async (req, res) => {
-    let history = [];
-    try {
-        const token = req.body['token'];
-        history = (await database.getHistoryByToken(token)) || [];
-    } catch (e) {
-        logging.logError(e.message);
-    } finally {
-        res.send(history);
-    }
-});
-
-app.get('/', (req, res) => {
-    res.send('API is working successfully');
-});
+// Setup REST routes
+setupRoutes(app);
 
 server.listen(port, () => {
     console.log(`Server start on http://127.0.0.1:${port}`);

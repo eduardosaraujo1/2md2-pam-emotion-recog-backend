@@ -97,7 +97,12 @@
                     try {
                         const json = JSON.parse(event.data.toString());
                         console.log(json);
-                        document.querySelector('.output').innerHTML = JSON.stringify(json, null, 4);
+                        if (json?.emotions) {
+                            document.querySelector('.output').innerHTML = JSON.stringify(json.emotions, null, 4);
+                        }
+                        if (json?.image) {
+                            document.querySelector('img').src = json.image;
+                        }
                     } catch (e) {
                         console.error(e);
                         document.querySelector('.output').innerHTML = event.data.toString();
@@ -107,12 +112,10 @@
 
             async function run() {
                 const img = await getImageBase64();
-                document.querySelector('img').src = img;
-
                 socket.sendMessage(`{"image": "${img}"}`);
             }
 
-            // setInterval(run, 500);
+            setInterval(run, 500);
         </script>
     </body>
 </html>

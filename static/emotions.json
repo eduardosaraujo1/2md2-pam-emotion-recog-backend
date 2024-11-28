@@ -1,0 +1,39 @@
+{
+    "emotions": [
+        {
+            "id": 1,
+            "name": "sad",
+            "color": "#0000ff"
+        },
+        {
+            "id": 2,
+            "name": "happy",
+            "color": "#ffff00"
+        },
+        {
+            "id": 3,
+            "name": "angry",
+            "color": "#ff0000"
+        },
+        {
+            "id": 4,
+            "name": "surprise",
+            "color": "#ffa500"
+        },
+        {
+            "id": 5,
+            "name": "fear",
+            "color": "#800080"
+        },
+        {
+            "id": 6,
+            "name": "disgust",
+            "color": "#008000"
+        },
+        {
+            "id": 7,
+            "name": "neutral",
+            "color": "#808080"
+        }
+    ]
+}

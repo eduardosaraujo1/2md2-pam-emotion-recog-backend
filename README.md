@@ -23,14 +23,6 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 ### Express endpoint
 
 ```
-[GET /new-token]
--> Request:
-{}
--> Response:
-{
-    "token": "15c66754d1384844126400ca6256c1ed34cbcb43cdabd575764a7dffa0b0200f"
-}
-
 [GET /history]
 -> Request:
 {
@@ -55,10 +47,6 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
         }
     }
 ]
--> Error 'invalid token':
-{
-    "error": "INVALID_CREDENTIALS"
-}
 
 // Query param ?token=15c66754d1384844126400ca6256c1ed34cbcb43cdabd575764a7dffa0b0200f
 [WebSocket /]
@@ -91,12 +79,12 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 -> Response: none // register on history table silently using ?token as a way to find the user
 
 [EMOTIONS]
-1 - Sad,
-2 - Happy,
-3 - Angry,
-4 - Surprise,
-5 - Fear,
-6 - Disgust,
+1 - Sad
+2 - Happy
+3 - Angry
+4 - Surprise
+5 - Fear
+6 - Disgust
 7 - Neutral
 ```
 
@@ -105,5 +93,6 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 -   [x] Conectar projeto Express.js ao MySQL
 -   [x] Criar rotas REST
 -   [x] Criar WebSocket
+-   [ ] Adicionar delay intencional ao método de api para ver como o server lida com delay
 -   [ ] Emocao should be a .json file not a mysql table
 -   [ ] Containerizar app em Docker e enviar para Railway

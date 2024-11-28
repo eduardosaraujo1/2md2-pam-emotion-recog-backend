@@ -1,8 +1,9 @@
 import mysql from 'mysql2';
-import { logging } from './logging.js';
+import logging from './logging.js';
 
 if (process.env.NODE_ENV !== 'production') {
-    import('dotenv/config');
+    const dotenv = await import('dotenv');
+    dotenv.config();
 }
 
 const pool = mysql
@@ -46,7 +47,7 @@ async function getEmotionByName(name) {
     }
 }
 
-async function registerEmotion(token, emotion) {
+async function registerEmotionById(token, emotion) {
     try {
         const query = `
         INSERT INTO tb_historico (user_token, fk_id_emocao) VALUES
@@ -59,8 +60,10 @@ async function registerEmotion(token, emotion) {
     }
 }
 
-export const database = {
+const database = {
     getHistoryByToken,
     getEmotionByName,
-    registerEmotion,
+    registerEmotionById,
 };
+
+export default database;
