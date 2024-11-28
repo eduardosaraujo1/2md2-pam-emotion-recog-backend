@@ -56,8 +56,9 @@ const wss = createSocketServer({
             connection.socket.send(JSON.stringify(formattedAnalysis));
 
             // logging: print only part of the 'image'
-            if (formattedAnalysis?.image && typeof formattedAnalysis.image === 'string') {
-                formattedAnalysis.image = formattedAnalysis.image.slice(0, 150) + '...';
+            const img = formattedAnalysis?.image;
+            if (img && typeof img === 'string') {
+                formattedAnalysis.image = img.slice(0, 150) + '...';
                 logging.log(`{ image: '${formattedAnalysis.image}' }`);
             }
             logging.log(formattedAnalysis?.emotions);

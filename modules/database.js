@@ -1,4 +1,4 @@
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
 import logging from './logging.js';
 
 if (process.env.NODE_ENV !== 'production') {
@@ -6,15 +6,7 @@ if (process.env.NODE_ENV !== 'production') {
     dotenv.config();
 }
 
-const pool = mysql
-    .createPool({
-        host: process.env.MYSQLHOST,
-        user: process.env.MYSQLUSER,
-        password: process.env.MYSQLPASSWORD,
-        port: process.env.MYSQLPORT || '3306',
-        database: process.env.MYSQL_DATABASE,
-    })
-    .promise();
+const pool = mysql.createPool(process.env.MYSQL_URL);
 
 async function getHistoryByToken(token) {
     try {
@@ -40,7 +32,7 @@ async function registerEmotionById(token, emotion) {
         const [result] = await pool.query(query, [token, emotion]);
         return result;
     } catch (e) {
-        logging.logError(e.message);
+        logging.logError('Query/Database error: ' + e.message);
     }
 }
 
