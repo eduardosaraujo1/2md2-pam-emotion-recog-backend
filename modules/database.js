@@ -19,7 +19,7 @@ const pool = mysql
 async function getHistoryByToken(token) {
     try {
         const query = `
-    SELECT id_emocao as 'id_emotion', dt_cadastro as 'ts_emotion'
+    SELECT id_emocao as 'id_emotion', dt_cadastro as 'timestamp'
     FROM historico
     WHERE user_uuid = ?
     ORDER BY dt_cadastro DESC

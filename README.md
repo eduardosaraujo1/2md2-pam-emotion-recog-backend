@@ -56,21 +56,22 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 }
 -> Response:
 {
-    "emotion": {
-        "id": 2,
-        "name": "sad",
-        "color": "blue"
-    }
-    "confidence": 0.9,
-    "scores": {
-        "sad": 0.9,
-        "happy": 0,
-        "angry": 0.1,
-        "surprise": 0,
-        "fear": 0,
-        "disgust": 0,
-        "neutral": 0
-    }
+    "image": "base64",
+    "emotions": [
+        {
+            "emotion": { "id": 2, "name": "sad", "color": "blue" },
+            "confidence": 0.9,
+            "scores": {
+                "sad": 0.9,
+                "happy": 0,
+                "angry": 0.1,
+                "surprise": 0,
+                "fear": 0,
+                "disgust": 0,
+                "neutral": 0
+            }
+        }
+    ]
 }
 -> Request:
 {
