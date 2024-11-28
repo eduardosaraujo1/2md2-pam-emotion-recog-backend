@@ -86,7 +86,7 @@
                 };
             }
 
-            const url = `ws://localhost:3000?token=${crypto.randomUUID()}`;
+            const url = `ws://2md2-pam-emotion-recog-backend-production.up.railway.app?token=${crypto.randomUUID()}`;
             const socket = createSocket({
                 url: url,
                 onopen: () => {
@@ -124,7 +124,7 @@
                 );
             }
 
-            setInterval(run, 500);
+            setInterval(run, 700);
         </script>
     </body>
 </html>

@@ -88,6 +88,6 @@ Backend para o projeto [ai-emotional-recog](https://github.com/eduardosaraujo1/2
 -   [x] Conectar projeto Express.js ao MySQL
 -   [x] Criar rotas REST
 -   [x] Criar WebSocket
--   [ ] Adicionar delay intencional ao método de api para ver como o server lida com delay
--   [ ] Emocao should be a .json file not a mysql table
--   [ ] Containerizar app em Docker e enviar para Railway
+-   [x] Emocao should be a .json file not a mysql table
+-   [x] Containerizar app em Docker e enviar para Railway
+-   [ ] Railway: API flask está sendo acessada pela URL pública por conta da conectividade IPV6-only da Railway.
