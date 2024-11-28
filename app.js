@@ -48,15 +48,19 @@ const wss = createSocketServer({
         function formatAnalysisAndReturn(analysis) {
             const formattedAnalysis = formatAnalysis(analysis);
 
+            if (!formattedAnalysis) {
+                return;
+            }
+
             // send analysis to client
             connection.socket.send(JSON.stringify(formattedAnalysis));
 
             // logging: print only part of the 'image'
-            if (typeof formattedAnalysis.image === 'string') {
+            if (formattedAnalysis?.image && typeof formattedAnalysis.image === 'string') {
                 formattedAnalysis.image = formattedAnalysis.image.slice(0, 150) + '...';
+                logging.log(`{ image: '${formattedAnalysis.image}' }`);
             }
-            logging.log(`{ image: '${formattedAnalysis.image}' }`);
-            logging.log(formattedAnalysis.emotions);
+            logging.log(formattedAnalysis?.emotions);
         }
 
         // get user authentication
