@@ -19,10 +19,10 @@ const pool = mysql
 async function getHistoryByToken(token) {
     try {
         const query = `
-    SELECT e.id as 'id', e.nome 'name', e.hex_color 'color', h.dt_cadastro as 'datetime'
-    FROM historico as h
-    WHERE h.user_token = ?
-    ORDER BY h.dt_cadastro DESC
+    SELECT id_emocao as 'id_emotion', dt_cadastro as 'ts_emotion'
+    FROM historico
+    WHERE user_uuid = ?
+    ORDER BY dt_cadastro DESC
     `;
         const [result] = await pool.query(query, [token]);
         return result;
