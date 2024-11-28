@@ -116,7 +116,13 @@
                 socket.sendMessage(`{"image": "${img}"}`);
             }
 
-            // setInterval(run, 500);
+            function randomEmotion() {
+                socket.sendMessage(
+                    JSON.stringify({
+                        register: Math.floor(1 + Math.random() * 7),
+                    })
+                );
+            }
         </script>
     </body>
 </html>
