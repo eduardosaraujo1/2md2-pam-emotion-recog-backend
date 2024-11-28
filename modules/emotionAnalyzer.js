@@ -94,7 +94,7 @@ export function formatAnalysis(analysis) {
     }
 
     // assert required fields
-    if (!analysis.image || !analysis.emotions) {
+    if (!analysis.image || !analysis.emotions || !Array.isArray(analysis.emotions)) {
         logging.logError(`formatAnalysisAndReturn: missing fields from analysis object:`);
         logging.log(analysis);
         return;

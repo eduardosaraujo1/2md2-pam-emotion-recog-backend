@@ -86,7 +86,7 @@
                 };
             }
 
-            const url = `ws://2md2-pam-emotion-recog-backend-production.up.railway.app?token=${crypto.randomUUID()}`;
+            let url = `ws://localhost:3000?token=${crypto.randomUUID()}`;
             const socket = createSocket({
                 url: url,
                 onopen: () => {
